@@ -1,0 +1,86 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
+environment:
+  python_requirements_txt: requirements.txt
+inputs:
+  chat_history:
+    type: list
+    is_chat_history: true
+    default: []
+  question:
+    type: string
+    is_chat_input: true
+    default: what happens in atlanta this weekend?
+  latitude:
+    type: double
+    default: 0
+  longitude:
+    type: double
+    default: 0
+  chatid:
+    type: string
+    default: "1111"
+  timezone:
+    type: int
+    default: 0
+outputs:
+  answer:
+    type: string
+    reference: ${prepare_response.output}
+    is_chat_output: true
+nodes:
+- name: intent_extraction
+  type: llm
+  source:
+    type: code
+    path: intent_extraction.jinja2
+  inputs:
+    deployment_name: gpt-35-turbo
+    max_tokens: 256
+    temperature: 0.7
+    user_input: ${process_input.output}
+    response_format:
+      type: json_object
+  connection: open_ai_connection
+  api: chat
+- name: process_input
+  type: python
+  source:
+    type: code
+    path: process_input.py
+  inputs:
+    chat_history: ${inputs.chat_history}
+    question: ${inputs.question}
+    latitude: ${inputs.latitude}
+    longitude: ${inputs.longitude}
+    timezone: ${inputs.timezone}
+    chatid: ${inputs.chatid}
+- name: call_api
+  type: python
+  source:
+    type: code
+    path: call_api.py
+  inputs:
+    user_intent: ${intent_extraction.output}
+- name: prepare_response
+  type: python
+  source:
+    type: code
+    path: prepare_response.py
+  inputs:
+    api_response: ${call_api.output}
+    user_intent: ${intent_extraction.output}
+    analyze_api_response: ${analyze_api_response.output}
+- name: analyze_api_response
+  type: llm
+  source:
+    type: code
+    path: analyze_api_response.jinja2
+  inputs:
+    deployment_name: gpt-4
+    response_format:
+      type: text
+    chat_history: ${inputs.chat_history}
+    question: ${inputs.question}
+    api_response: ${call_api.output}
+  connection: open_ai_connection
+  api: chat
