@@ -70,13 +70,14 @@ nodes:
     api_response: ${call_api.output}
     user_intent: ${intent_extraction.output}
     analyze_api_response: ${analyze_api_response.output}
+    chatid: ${inputs.chatid}
 - name: analyze_api_response
   type: llm
   source:
     type: code
     path: analyze_api_response.jinja2
   inputs:
-    deployment_name: gpt-4
+    deployment_name: gpt-35-turbo
     response_format:
       type: text
     chat_history: ${inputs.chat_history}
