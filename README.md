@@ -27,6 +27,13 @@ flowchart TD
 - Modify the call_api tool and prompts to consider your API use case
 - Build Docker image
 - [Deploy to your container host of choice!](https://microsoft.github.io/promptflow/how-to-guides/deploy-a-flow/index.html)
+- You can optionally save chat history to Azure Cosmos DB. The partition key is __/sessionId__  
+  The following environment variables need to be set:  
+    __COSMOS_ENDPOINT__  
+    __COSMOS_KEY__  
+    __DATABASE_NAME__  
+    __CONTAINER_NAME__  
+    __ENABLE_COSMOS_DB__  
 
 ## Contributing
 
